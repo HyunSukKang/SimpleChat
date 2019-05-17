@@ -10,7 +10,7 @@ public class ChatServer {
 			System.out.println("Waiting connection...");
 			HashMap hm = new HashMap();
 			while(true){
-				Socket sock = server.accept();
+				Socket sock = server.accept(); // accept() method 는 외부에서 어떤 포트로 소켓에 연결을 신청할 떄, 그걸 잡아서 연결시켜주는 method
 				ChatThread chatthread = new ChatThread(sock, hm);
 				chatthread.start();
 			} // while
