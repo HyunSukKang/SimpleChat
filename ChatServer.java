@@ -26,6 +26,7 @@ class ChatThread extends Thread{
 	private BufferedReader br;
 	private HashMap hm;
 	private boolean initFlag = false;
+	private String[] forbiddenWord = {"captain", "vision", "avengers", "ironman", "hulk"};
 	public ChatThread(Socket sock, HashMap hm){
 		this.sock = sock;
 		this.hm = hm;
@@ -33,7 +34,7 @@ class ChatThread extends Thread{
 			PrintWriter pw = new PrintWriter(new OutputStreamWriter(sock.getOutputStream()));
 			br = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			id = br.readLine();
-			broadcast(id + " entered.");
+			broadcast(id, id + " entered.");
 			System.out.println("[Server] User (" + id + ") entered.");
 			synchronized(hm){
 				hm.put(this.id, pw);
@@ -47,12 +48,18 @@ class ChatThread extends Thread{
 		try{
 			String line = null;
 			while((line = br.readLine()) != null){
-				if(line.equals("/quit"))
+				if(line.equals("/quit")){
+					System.out.println("[Server] User (" + id + ") exited.");
 					break;
+				}
+				if(line.equals("/userlist")){
+					send_userlist();
+				}
 				if(line.indexOf("/to ") == 0){
 					sendmsg(line);
-				}else
-					broadcast(id + " : " + line);
+				}
+				else
+					broadcast(id, id + " : " + line);
 			}
 		}catch(Exception ex){
 			System.out.println(ex);
@@ -60,7 +67,7 @@ class ChatThread extends Thread{
 			synchronized(hm){
 				hm.remove(id);
 			}
-			broadcast(id + " exited.");
+			broadcast(id, id + " exited.");
 			try{
 				if(sock != null)
 					sock.close();
@@ -81,15 +88,40 @@ class ChatThread extends Thread{
 			} // if
 		}
 	} // sendmsg
-	public void broadcast(String msg){
+	public void broadcast(String id, String msg){
 		synchronized(hm){
-			Collection collection = hm.values();
-			Iterator iter = collection.iterator();
-			while(iter.hasNext()){
-				PrintWriter pw = (PrintWriter)iter.next();
-				pw.println(msg);
-				pw.flush();
+			Set keySet = hm.keySet();
+			Object userlist[] = keySet.toArray();
+			for(Object s : userlist){
+				if(s.toString().equals(id)){}
+				else{
+					Object obj = hm.get(s.toString());
+					if(obj!= null){
+						PrintWriter pw = (PrintWriter)obj;
+						pw.println(msg);
+						pw.flush();
+					}	
+				}
 			}
 		}
 	} // broadcast
+	public void send_userlist(){
+		synchronized(hm){
+			int count = 0;
+			Collection collection = hm.values();
+			Iterator iter = collection.iterator();
+			Set keySet = hm.keySet();
+			Object userlist[] = keySet.toArray();
+			while(iter.hasNext()){
+				PrintWriter pw = (PrintWriter)iter.next();
+				for(Object s : userlist){
+					count++;
+					pw.println(s.toString());
+					pw.flush();
+				}
+				pw.println("Number of User : " + count);
+				count = 0;
+			}
+		}
+	} // send_userlist
 }
