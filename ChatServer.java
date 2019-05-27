@@ -1,3 +1,5 @@
+// Github : https://github.com/HyunSukKang/SimpleChat
+
 import java.net.*;
 import java.io.*;
 import java.util.*;
@@ -26,7 +28,7 @@ class ChatThread extends Thread{
 	private BufferedReader br;
 	private HashMap hm;
 	private boolean initFlag = false;
-	private String[] forbiddenWord = {"captain", "vision", "avengers", "ironman", "hulk"};
+	private String[] forbiddenWord = {"captain", "vision", "avengers", "ironman", "hulk"}; // 금지어
 	public ChatThread(Socket sock, HashMap hm){
 		this.sock = sock;
 		this.hm = hm;
@@ -52,7 +54,7 @@ class ChatThread extends Thread{
 					System.out.println("[Server] User (" + id + ") exited.");
 					break;
 				}
-				if(line.equals("/userlist")){
+				if(line.equals("/userlist")){ // userlist 입력했을 경우
 					send_userlist(id);
 				}
 				else if(line.indexOf("/to ") == 0){
@@ -88,6 +90,13 @@ class ChatThread extends Thread{
 			} // if
 		}
 	} // sendmsg
+
+	/**
+	 * 받은 msg를 wordTest를 통해 검사하여 금지어가 있으면 그 유저에게만 경고메시지 전달
+	 * msg를 입력한 유저의 id를 파라미터로 받아서, 그 유저에게는 msg를 전달하지 않음
+	 * @param id
+	 * @param msg
+	 */
 	public void broadcast(String id, String msg){
 		int flag = 0;
 		synchronized(hm){
@@ -102,7 +111,7 @@ class ChatThread extends Thread{
 				Set keySet = hm.keySet();
 				Object userlist[] = keySet.toArray();
 				for(Object s : userlist){
-					if(s.toString().equals(id)){}
+					if(s.toString().equals(id)){} // msg를 입력한 유저일 경우 지나감
 					else{
 						Object obj = hm.get(s.toString());
 						if(obj!= null){
@@ -115,6 +124,12 @@ class ChatThread extends Thread{
 			}
 		}
 	} // broadcast
+
+	/**
+	 * "/userlist"를 입력한 유저의 id를 받아, 그 유저에게 userlist를 전달한다.
+	 * userlist는 HashMap에서 keySet()을 통해 얻는다. 
+	 * @param id
+	 */
 	public void send_userlist(String id){
 		synchronized(hm){
 			int count = 0;
@@ -132,6 +147,12 @@ class ChatThread extends Thread{
 			pw.flush();
 		}
 	} // send_userlist
+
+	/**
+	 * wordTest method는 유저에게 메시지를 입력받았을 때, 금지어가 존재하는지 검사하는 method이다.
+	 * 금지어가 있으면 1, 없으면 0을 리턴한다.
+	 * String class의 indexOf() 를 통해 검사한다. (indexOf()는 특정 String이 존재 할 경우 그 String의 인덱스를, 없을 경우 -1을 리턴)
+	 */
 	public int wordTest(String msg){
 		int flag = 0;
 		for(String s : forbiddenWord){
