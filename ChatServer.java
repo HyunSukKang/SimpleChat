@@ -53,9 +53,9 @@ class ChatThread extends Thread{
 					break;
 				}
 				if(line.equals("/userlist")){
-					send_userlist();
+					send_userlist(id);
 				}
-				if(line.indexOf("/to ") == 0){
+				else if(line.indexOf("/to ") == 0){
 					sendmsg(line);
 				}
 				else
@@ -89,39 +89,57 @@ class ChatThread extends Thread{
 		}
 	} // sendmsg
 	public void broadcast(String id, String msg){
+		int flag = 0;
 		synchronized(hm){
-			Set keySet = hm.keySet();
-			Object userlist[] = keySet.toArray();
-			for(Object s : userlist){
-				if(s.toString().equals(id)){}
-				else{
-					Object obj = hm.get(s.toString());
-					if(obj!= null){
-						PrintWriter pw = (PrintWriter)obj;
-						pw.println(msg);
-						pw.flush();
-					}	
+			flag = wordTest(msg);
+			if(flag == 1){
+				Object obj = hm.get(id);
+				PrintWriter pw = (PrintWriter)obj;
+				pw.println("Detected forbiddened word");
+				pw.flush();
+			}
+			else{
+				Set keySet = hm.keySet();
+				Object userlist[] = keySet.toArray();
+				for(Object s : userlist){
+					if(s.toString().equals(id)){}
+					else{
+						Object obj = hm.get(s.toString());
+						if(obj!= null){
+							PrintWriter pw = (PrintWriter)obj;
+							pw.println(msg);
+							pw.flush();
+						}	
+					}
 				}
 			}
 		}
 	} // broadcast
-	public void send_userlist(){
+	public void send_userlist(String id){
 		synchronized(hm){
 			int count = 0;
-			Collection collection = hm.values();
-			Iterator iter = collection.iterator();
 			Set keySet = hm.keySet();
 			Object userlist[] = keySet.toArray();
-			while(iter.hasNext()){
-				PrintWriter pw = (PrintWriter)iter.next();
-				for(Object s : userlist){
-					count++;
-					pw.println(s.toString());
-					pw.flush();
-				}
-				pw.println("Number of User : " + count);
-				count = 0;
+
+			Object obj = hm.get(id);
+			PrintWriter pw = (PrintWriter)obj;
+			for(Object s : userlist){
+				count++;
+				pw.println(s.toString());
+				pw.flush();
 			}
+			pw.println("Number of User : " + count);
+			pw.flush();
 		}
 	} // send_userlist
+	public int wordTest(String msg){
+		int flag = 0;
+		for(String s : forbiddenWord){
+			if(msg.indexOf(s) != -1){
+				flag = 1;
+			}
+		}
+
+		return flag;
+	} // wordTest
 }
