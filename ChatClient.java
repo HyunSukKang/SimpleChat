@@ -1,4 +1,6 @@
 import java.net.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.io.*;
 
 public class ChatClient {
@@ -17,6 +19,8 @@ public class ChatClient {
 			pw = new PrintWriter(new OutputStreamWriter(sock.getOutputStream()));
 			br = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			BufferedReader keyboard = new BufferedReader(new InputStreamReader(System.in));
+			Date Time = new Date();
+			SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
 			// send username.
 			pw.println(args[0]);
 			pw.flush();
@@ -31,7 +35,7 @@ public class ChatClient {
 					break;
 				}
 			}
-			System.out.println("Connection closed.");
+			System.out.println("[" + format.format(Time) + "] " + "Connection closed.");
 		}catch(Exception ex){
 			if(!endflag)
 				System.out.println(ex);
